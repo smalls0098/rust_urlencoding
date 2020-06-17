@@ -19,10 +19,10 @@ fn encode_into<W: Write>(data: &str, mut escaped: W) -> io::Result<()> {
     for byte in data.as_bytes().iter() {
         match *byte {
             b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' |  b'-' | b'.' | b'_' | b'~' => {
-                escaped.write(std::slice::from_ref(byte))?;
+                escaped.write_all(std::slice::from_ref(byte))?;
             },
             other => {
-                escaped.write(&[b'%', to_hex_digit(other >> 4), to_hex_digit(other & 15)])?;
+                escaped.write_all(&[b'%', to_hex_digit(other >> 4), to_hex_digit(other & 15)])?;
             },
         }
     }
@@ -94,8 +94,8 @@ pub enum FromUrlEncodingError {
 impl Error for FromUrlEncodingError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            &FromUrlEncodingError::UriCharacterError {character: _, index: _} => None,
-            &FromUrlEncodingError::Utf8CharacterError {ref error} => Some(error)
+            FromUrlEncodingError::UriCharacterError {character: _, index: _} => None,
+            FromUrlEncodingError::Utf8CharacterError {error} => Some(error)
         }
     }
 }
@@ -103,9 +103,9 @@ impl Error for FromUrlEncodingError {
 impl Display for FromUrlEncodingError {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match self {
-            &FromUrlEncodingError::UriCharacterError {character, index} =>
+            FromUrlEncodingError::UriCharacterError {character, index} =>
                 write!(f, "invalid URI char [{}] at [{}]", character, index),
-            &FromUrlEncodingError::Utf8CharacterError {ref error} =>
+            FromUrlEncodingError::Utf8CharacterError {error} =>
                 write!(f, "invalid utf8 char: {}", error)
         }
     }
