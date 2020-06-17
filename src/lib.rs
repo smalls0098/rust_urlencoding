@@ -5,6 +5,7 @@ use std::fmt::{self, Display};
 use std::io::Write;
 use std::io;
 
+/// Percent-encodes every byte except alphanumerics and `-`, `_`, `.`, `~`. Assumes UTF-8 encoding.
 pub fn encode(data: &str) -> String {
     let mut escaped = Vec::with_capacity(data.len());
     encode_into(data, &mut escaped).unwrap();
@@ -47,6 +48,9 @@ fn to_hex_digit(digit: u8) -> u8 {
     }
 }
 
+/// Decode percent-encoded string assuming UTF-8 encoding.
+///
+/// Unencoded `+` is preserved literally, and _not_ changed to a space.
 pub fn decode(string: &str) -> Result<String, FromUrlEncodingError> {
     let mut out: Vec<u8> = Vec::with_capacity(string.len());
     let mut bytes = string.as_bytes().iter().copied();
@@ -85,9 +89,12 @@ pub fn decode(string: &str) -> Result<String, FromUrlEncodingError> {
     String::from_utf8(out).map_err(|error| FromUrlEncodingError::Utf8CharacterError {error})
 }
 
+/// Error when decoding invalid UTF-8
 #[derive(Debug)]
 pub enum FromUrlEncodingError {
+    /// Not used. Exists for backwards-compatibility only
     UriCharacterError { character: char, index: usize },
+    /// Percent-encoded string contained bytes that can't be expressed in UTF-8
     Utf8CharacterError { error: FromUtf8Error },
 }
 

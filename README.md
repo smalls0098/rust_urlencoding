@@ -2,10 +2,11 @@
 
 [![Latest Version](https://img.shields.io/crates/v/urlencoding.svg)](https://lib.rs/crates/urlencoding)
 
-A Rust library for doing URL percentage encoding and decoding. It percent-encodes everything except alphanumerics and `-`, `_`, `.`, `~`. When decoding `+` is not treated as a space.
+A tiny Rust library for doing URL percentage encoding and decoding. It percent-encodes everything except alphanumerics and `-`, `_`, `.`, `~`.
 
-Usage
-=====
+When decoding `+` is not treated as a space. Error recovery from incomplete percent-escapes follows the [WHATWG URL standard](https://url.spec.whatwg.org/).
+
+## Usage
 
 To encode a string, do the following:
 
@@ -31,7 +32,6 @@ fn main() {
 }
 ```
 
-License
-=======
+## License
 
 This project is licensed under the MIT license, Copyright (c) 2017 Bertram Truong. For more information see the `LICENSE` file.
