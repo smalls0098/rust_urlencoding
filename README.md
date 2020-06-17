@@ -1,17 +1,8 @@
 # urlencoding
 
-[![Latest Version](https://img.shields.io/crates/v/urlencoding.svg)](https://crates.io/crates/urlencoding)
+[![Latest Version](https://img.shields.io/crates/v/urlencoding.svg)](https://lib.rs/crates/urlencoding)
 
-A Rust library for doing URL percentage encoding.
-
-Installation
-============
-
-This crate can be downloaded through Cargo. To do so, add the following line to your `Cargo.toml` file, under `dependencies`:
-
-```toml
-urlencoding = "1.0.0"
-```
+A Rust library for doing URL percentage encoding and decoding. It percent-encodes everything except alphanumerics and `-`, `_`, `.`, `~`. When decoding `+` is not treated as a space.
 
 Usage
 =====
@@ -19,8 +10,6 @@ Usage
 To encode a string, do the following:
 
 ```rust
-extern crate urlencoding;
-
 use urlencoding::encode;
 
 fn main() {
@@ -33,8 +22,6 @@ fn main() {
 To decode a string, it's only slightly different:
 
 ```rust
-extern crate urlencoding;
-
 use urlencoding::decode;
 
 fn main() {
