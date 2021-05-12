@@ -6,7 +6,6 @@ pub use enc::Encoded;
 mod dec;
 pub use dec::decode;
 pub use dec::decode_binary;
-pub use dec::FromUrlEncodingError;
 
 #[cfg(test)]
 mod tests {

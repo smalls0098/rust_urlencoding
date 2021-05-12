@@ -1,6 +1,4 @@
 use std::borrow::Cow;
-use std::error::Error;
-use std::fmt::{self, Display};
 use std::string::FromUtf8Error;
 
 #[inline]
@@ -15,12 +13,14 @@ pub(crate) fn from_hex_digit(digit: u8) -> Option<u8> {
 
 /// Decode percent-encoded string assuming UTF-8 encoding.
 ///
+/// If you need a `String`, call `.into_owned()` (not `.to_owned()`).
+///
 /// Unencoded `+` is preserved literally, and _not_ changed to a space.
-#[inline]
-pub fn decode(urlencoded: &str) -> Result<String, FromUrlEncodingError> {
-    let data = urlencoded.as_bytes();
-    String::from_utf8(decode_binary(data).into_owned())
-        .map_err(|error| FromUrlEncodingError::Utf8CharacterError {error})
+pub fn decode(data: &str) -> Result<Cow<str>, FromUtf8Error> {
+    match decode_binary(data.as_bytes()) {
+        Cow::Borrowed(_) => Ok(Cow::Borrowed(data)),
+        Cow::Owned(s) => Ok(Cow::Owned(String::from_utf8(s)?)),
+    }
 }
 
 /// Decode percent-encoded string as binary data, in any encoding.
@@ -68,33 +68,4 @@ pub fn decode_binary(mut data: &[u8]) -> Cow<[u8]> {
         };
     }
     Cow::Owned(out)
-}
-
-/// Error when decoding invalid UTF-8
-#[derive(Debug)]
-pub enum FromUrlEncodingError {
-    /// Not used. Exists for backwards-compatibility only
-    UriCharacterError { character: char, index: usize },
-    /// Percent-encoded string contained bytes that can't be expressed in UTF-8
-    Utf8CharacterError { error: FromUtf8Error },
-}
-
-impl Error for FromUrlEncodingError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            FromUrlEncodingError::UriCharacterError {character: _, index: _} => None,
-            FromUrlEncodingError::Utf8CharacterError {error} => Some(error)
-        }
-    }
-}
-
-impl Display for FromUrlEncodingError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        match self {
-            FromUrlEncodingError::UriCharacterError {character, index} =>
-                write!(f, "invalid URI char [{}] at [{}]", character, index),
-            FromUrlEncodingError::Utf8CharacterError {error} =>
-                write!(f, "invalid utf8 char: {}", error)
-        }
-    }
 }
