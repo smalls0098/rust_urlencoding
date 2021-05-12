@@ -1,7 +1,7 @@
-use std::str;
-use std::fmt;
 use std::borrow::Cow;
+use std::fmt;
 use std::io;
+use std::str;
 
 /// Wrapper type that implements `Display`. Encodes on the fly, without allocating.
 /// Percent-encodes every byte except alphanumerics and `-`, `_`, `.`, `~`. Assumes UTF-8 encoding.
@@ -57,9 +57,11 @@ impl<String: AsRef<[u8]>> fmt::Display for Encoded<String> {
 }
 
 /// Percent-encodes every byte except alphanumerics and `-`, `_`, `.`, `~`. Assumes UTF-8 encoding.
-#[inline]
-pub fn encode(data: &str) -> String {
-    encode_binary(data.as_bytes()).into_owned()
+///
+/// Call `.into_owned()` if you need a `String`
+#[inline(always)]
+pub fn encode(data: &str) -> Cow<str> {
+    encode_binary(data.as_bytes())
 }
 
 /// Percent-encodes every byte except alphanumerics and `-`, `_`, `.`, `~`.
