@@ -1,6 +1,6 @@
-use std::fmt::Display;
-use std::fmt;
+use std::borrow::Cow;
 use std::error::Error;
+use std::fmt::{self, Display};
 use std::string::FromUtf8Error;
 
 #[inline]
@@ -16,8 +16,17 @@ pub(crate) fn from_hex_digit(digit: u8) -> Option<u8> {
 /// Decode percent-encoded string assuming UTF-8 encoding.
 ///
 /// Unencoded `+` is preserved literally, and _not_ changed to a space.
+#[inline]
 pub fn decode(urlencoded: &str) -> Result<String, FromUrlEncodingError> {
-    let mut data = urlencoded.as_bytes();
+    let data = urlencoded.as_bytes();
+    String::from_utf8(decode_binary(data).into_owned())
+        .map_err(|error| FromUrlEncodingError::Utf8CharacterError {error})
+}
+
+/// Decode percent-encoded string as binary data, in any encoding.
+///
+/// Unencoded `+` is preserved literally, and _not_ changed to a space.
+pub fn decode_binary(mut data: &[u8]) -> Cow<[u8]> {
     let mut out: Vec<u8> = Vec::with_capacity(data.len());
     loop {
         let mut parts = data.splitn(2, |&c| c == b'%');
@@ -28,9 +37,9 @@ pub fn decode(urlencoded: &str) -> Result<String, FromUrlEncodingError> {
             None => {
                 if out.is_empty() {
                     // avoids utf-8 check
-                    return Ok(urlencoded.into());
+                    return data.into();
                 }
-                break
+                break;
             },
             Some(rest) => match rest.get(0..2) {
                 Some(&[first, second]) => match from_hex_digit(first) {
@@ -58,7 +67,7 @@ pub fn decode(urlencoded: &str) -> Result<String, FromUrlEncodingError> {
             },
         };
     }
-    String::from_utf8(out).map_err(|error| FromUrlEncodingError::Utf8CharacterError {error})
+    Cow::Owned(out)
 }
 
 /// Error when decoding invalid UTF-8
