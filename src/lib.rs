@@ -1,9 +1,11 @@
 mod enc;
 pub use enc::encode;
+pub use enc::encode_binary;
 pub use enc::Encoded;
 
 mod dec;
 pub use dec::decode;
+pub use dec::decode_binary;
 
 #[cfg(test)]
 mod tests {
