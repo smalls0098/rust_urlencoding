@@ -1,4 +1,36 @@
 use std::str;
+use std::fmt;
+
+/// Wrapper type that implements `Display`. Encodes on the fly, without allocating.
+/// Percent-encodes every byte except alphanumerics and `-`, `_`, `.`, `~`. Assumes UTF-8 encoding.
+///
+/// ```rust
+/// use urlencoding::Encoded;
+/// format!("{}", Encoded("hello!"));
+/// ```
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
+#[repr(transparent)]
+pub struct Encoded<Str>(pub Str);
+
+impl<Str> Encoded<Str> {
+    /// Long way of writing `Encoded(data)`
+    #[inline(always)]
+    pub fn new(string: Str) -> Self where Str: AsRef<str> {
+        Self(string)
+    }
+
+    /// Perform urlencoding
+    #[inline(always)]
+    pub fn to_string(&self) -> String where Str: AsRef<str> {
+        encode(self.0.as_ref())
+    }
+}
+
+impl<String: AsRef<[u8]>> fmt::Display for Encoded<String> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        encode_into(self.0.as_ref(), |s| f.write_str(s))
+    }
+}
 
 /// Percent-encodes every byte except alphanumerics and `-`, `_`, `.`, `~`. Assumes UTF-8 encoding.
 pub fn encode(data: &str) -> String {

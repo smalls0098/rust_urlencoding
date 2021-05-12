@@ -1,5 +1,6 @@
 mod enc;
 pub use enc::encode;
+pub use enc::Encoded;
 
 mod dec;
 pub use dec::decode;
