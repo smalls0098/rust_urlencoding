@@ -1,29 +1,41 @@
-use std::io::Write;
-use std::io;
+use std::str;
 
 /// Percent-encodes every byte except alphanumerics and `-`, `_`, `.`, `~`. Assumes UTF-8 encoding.
 pub fn encode(data: &str) -> String {
-    let mut escaped = Vec::with_capacity(data.len());
-    encode_into(data, &mut escaped).unwrap();
-    // Encoded string is guaranteed to be ASCII
-    unsafe {
-        String::from_utf8_unchecked(escaped)
-    }
+    let data = data.as_bytes();
+    // add maybe extra capacity, but try not to exceed allocator's bucket size
+    let mut escaped = String::with_capacity(data.len() | 15);
+    encode_into(data, |s| Ok::<_, std::convert::Infallible>(escaped.push_str(s))).unwrap();
+    escaped
 }
 
-#[inline]
-fn encode_into<W: Write>(data: &str, mut escaped: W) -> io::Result<()> {
-    for byte in data.as_bytes().iter() {
-        match *byte {
-            b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' |  b'-' | b'.' | b'_' | b'~' => {
-                escaped.write_all(std::slice::from_ref(byte))?;
-            },
-            other => {
-                escaped.write_all(&[b'%', to_hex_digit(other >> 4), to_hex_digit(other & 15)])?;
-            },
+fn encode_into<E>(mut data: &[u8], mut push_str: impl FnMut(&str) -> Result<(), E>) -> Result<(), E> {
+    loop {
+        // Fast path to skip over safe chars at the beginning of the remaining string
+        let ascii_len = data.iter()
+            .take_while(|&&c| matches!(c, b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' |  b'-' | b'.' | b'_' | b'~')).count();
+
+        let (safe, rest) = if ascii_len >= data.len() {
+            (data, &[][..]) // redundatnt to optimize out a panic in split_at
+        } else {
+            data.split_at(ascii_len)
+        };
+        if !safe.is_empty() {
+            push_str(unsafe { str::from_utf8_unchecked(safe) })?;
         }
+        if rest.is_empty() {
+            return Ok(());
+        }
+
+        match rest.split_first() {
+            Some((byte, rest)) => {
+                let enc = &[b'%', to_hex_digit(byte >> 4), to_hex_digit(byte & 15)];
+                push_str(unsafe { str::from_utf8_unchecked(enc) })?;
+                data = rest;
+            }
+            None => return Ok(()),
+        };
     }
-    Ok(())
 }
 
 #[inline]

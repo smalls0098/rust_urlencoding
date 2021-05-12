@@ -57,12 +57,22 @@ mod tests {
         assert_eq!("pureascii", decode("pureascii").unwrap());
         assert_eq!("", encode(""));
         assert_eq!("", decode("").unwrap());
+        assert_eq!("%26a%25b%21c.d%3Fe", encode("&a%b!c.d?e"));
         assert_eq!("%00", encode("\0"));
+        assert_eq!("%00x", encode("\0x"));
+        assert_eq!("x%00", encode("x\0"));
+        assert_eq!("x%00x", encode("x\0x"));
+        assert_eq!("aa%00%00bb", encode("aa\0\0bb"));
         assert_eq!("\0", decode("\0").unwrap());
         assert!(decode("%F0%0F%91%BE%20Hello%21").is_err());
-        assert_eq!("this%2that", decode("this%2that").unwrap());
         assert_eq!("this that", decode("this%20that").unwrap());
         assert_eq!("this that%", decode("this%20that%").unwrap());
         assert_eq!("this that%2", decode("this%20that%2").unwrap());
+        assert_eq!("this that%%", decode("this%20that%%").unwrap());
+        assert_eq!("this that%2%", decode("this%20that%2%").unwrap());
+        assert_eq!("this%2that", decode("this%2that").unwrap());
+        assert_eq!("this%%2that", decode("this%%2that").unwrap());
+        assert_eq!("this%2x&that", decode("this%2x%26that").unwrap());
+        // assert_eq!("this%2&that", decode("this%2%26that").unwrap());
     }
 }
