@@ -41,6 +41,12 @@ impl<Str: AsRef<[u8]>> Encoded<Str> {
         encode_into(self.0.as_ref(), false, |s| writer.write_all(s.as_bytes()))?;
         Ok(())
     }
+
+    /// Perform urlencoding into a string
+    #[inline]
+    pub fn append_to(&self, string: &mut String) {
+        append_string(&self.0.as_ref(), string, false);
+    }
 }
 
 impl<String: AsRef<[u8]>> fmt::Display for Encoded<String> {
