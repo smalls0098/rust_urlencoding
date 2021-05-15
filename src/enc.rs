@@ -38,14 +38,14 @@ impl<Str: AsRef<[u8]>> Encoded<Str> {
     /// Perform urlencoding into a writer
     #[inline]
     pub fn write<W: io::Write>(&self, writer: &mut W) -> io::Result<()> {
-        encode_into(self.0.as_ref(), |s| writer.write_all(s.as_bytes()))?;
+        encode_into(self.0.as_ref(), false, |s| writer.write_all(s.as_bytes()))?;
         Ok(())
     }
 }
 
 impl<String: AsRef<[u8]>> fmt::Display for Encoded<String> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        encode_into(self.0.as_ref(), |s| f.write_str(s))?;
+        encode_into(self.0.as_ref(), false, |s| f.write_str(s))?;
         Ok(())
     }
 }
@@ -61,7 +61,7 @@ pub fn encode(data: &str) -> String {
 pub fn encode_binary(data: &[u8]) -> Cow<str> {
     // add maybe extra capacity, but try not to exceed allocator's bucket size
     let mut escaped = String::with_capacity(data.len() | 15);
-    let unmodified = encode_into(data, |s| Ok::<_, std::convert::Infallible>(escaped.push_str(s))).unwrap();
+    let unmodified = append_string(data, &mut escaped, true);
     if unmodified {
         return Cow::Borrowed(unsafe {
             // encode_into has checked it's ASCII
@@ -71,7 +71,11 @@ pub fn encode_binary(data: &[u8]) -> Cow<str> {
     Cow::Owned(escaped)
 }
 
-fn encode_into<E>(mut data: &[u8], mut push_str: impl FnMut(&str) -> Result<(), E>) -> Result<bool, E> {
+fn append_string(data: &[u8], escaped: &mut String, may_skip: bool) -> bool {
+    encode_into(data, may_skip, |s| Ok::<_, std::convert::Infallible>(escaped.push_str(s))).unwrap()
+}
+
+fn encode_into<E>(mut data: &[u8], may_skip_write: bool, mut push_str: impl FnMut(&str) -> Result<(), E>) -> Result<bool, E> {
     let mut pushed = false;
     loop {
         // Fast path to skip over safe chars at the beginning of the remaining string
@@ -79,7 +83,7 @@ fn encode_into<E>(mut data: &[u8], mut push_str: impl FnMut(&str) -> Result<(), 
             .take_while(|&&c| matches!(c, b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' |  b'-' | b'.' | b'_' | b'~')).count();
 
         let (safe, rest) = if ascii_len >= data.len() {
-            if !pushed {
+            if !pushed && may_skip_write {
                 return Ok(true);
             }
             (data, &[][..]) // redundatnt to optimize out a panic in split_at
@@ -112,4 +116,16 @@ fn to_hex_digit(digit: u8) -> u8 {
         0..=9 => b'0' + digit,
         10..=255 => b'A' - 10 + digit,
     }
+}
+
+#[test]
+fn lazy_writer() {
+    let mut s = "he".to_string();
+    Encoded("llo").append_to(&mut s);
+    assert_eq!("hello", s);
+
+    assert_eq!("hello", Encoded("hello").to_string());
+    assert_eq!("hello", format!("{}", Encoded("hello")));
+    assert_eq!("hello", Encoded("hello").to_str());
+    assert!(matches!(Encoded("hello").to_str(), Cow::Borrowed(_)));
 }
