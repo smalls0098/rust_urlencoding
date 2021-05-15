@@ -123,15 +123,3 @@ fn to_hex_digit(digit: u8) -> u8 {
         10..=255 => b'A' - 10 + digit,
     }
 }
-
-#[test]
-fn lazy_writer() {
-    let mut s = "he".to_string();
-    Encoded("llo").append_to(&mut s);
-    assert_eq!("hello", s);
-
-    assert_eq!("hello", Encoded("hello").to_string());
-    assert_eq!("hello", format!("{}", Encoded("hello")));
-    assert_eq!("hello", Encoded("hello").to_str());
-    assert!(matches!(Encoded("hello").to_str(), Cow::Borrowed(_)));
-}

@@ -10,8 +10,7 @@ pub use dec::FromUrlEncodingError;
 
 #[cfg(test)]
 mod tests {
-    use super::encode;
-    use super::decode;
+    use super::*;
     use crate::dec::from_hex_digit;
 
     #[test]
@@ -79,4 +78,26 @@ mod tests {
         assert_eq!("this%2x&that", decode("this%2x%26that").unwrap());
         // assert_eq!("this%2&that", decode("this%2%26that").unwrap());
     }
+
+    #[test]
+    fn lazy_writer() {
+        let mut s = "he".to_string();
+        Encoded("llo").append_to(&mut s);
+        assert_eq!("hello", s);
+
+        assert_eq!("hello", Encoded("hello").to_string());
+        assert_eq!("hello", format!("{}", Encoded("hello")));
+        assert_eq!("hello", Encoded("hello").to_str());
+        assert!(matches!(Encoded("hello").to_str(), std::borrow::Cow::Borrowed(_)));
+    }
+
+    #[test]
+    fn whatwg_examples() {
+        assert_eq!(*decode_binary(b"%25%s%1G"), b"%%s%1G"[..]);
+        assert_eq!(*decode_binary("‽%25%2E".as_bytes()), b"\xE2\x80\xBD\x25\x2E"[..]);
+        assert_eq!(encode("≡"), "%E2%89%A1");
+        assert_eq!(encode("‽"), "%E2%80%BD");
+        assert_eq!(encode("Say what‽"), "Say%20what%E2%80%BD");
+    }
+
 }
