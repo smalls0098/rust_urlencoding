@@ -1,6 +1,6 @@
 [package]
 name = "urlencoding"
-version = "2.0.0-alpha.2"
+version = "2.0.0"
 authors = ["Kornel <kornel@geekhood.net>", "Bertram Truong <b@bertramtruong.com>"]
 categories = ["encoding", "web-programming"]
 description = "A Rust library for doing URL percentage encoding."
