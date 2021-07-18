@@ -49,6 +49,15 @@ impl<Str: AsRef<[u8]>> Encoded<Str> {
     }
 }
 
+impl<'a> Encoded<&'a str> {
+    /// Same as new, but hints a more specific type, so you can avoid errors about `AsRef<[u8]>` not implemented
+    /// on references-to-references.
+    #[inline(always)]
+    pub fn str(string: &'a str) -> Self {
+        Self(string)
+    }
+}
+
 impl<String: AsRef<[u8]>> fmt::Display for Encoded<String> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         encode_into(self.0.as_ref(), false, |s| f.write_str(s))?;
