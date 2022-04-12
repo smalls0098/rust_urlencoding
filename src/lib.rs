@@ -29,6 +29,17 @@
 //!
 //! This library returns [`Cow`](https://doc.rust-lang.org/stable/std/borrow/enum.Cow.html) to avoid allocating when decoding/encoding is not needed. Call `.into_owned()` on the `Cow` to get a `Vec` or `String`.
 
+// #![feature(matches_macro)] fix bug use nightly-2019-12-01-x86_64-apple-darwin build
+//error[E0658]: use of unstable library feature 'matches_macro'
+//--> /Users/smalls/.cargo/registry/src/github.com-1ecc6299db9ec823/urlencoding-2.1.0/src/enc.rs:100:31
+//|
+//100 |             .take_while(|&&c| matches!(c, b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' |  b'-' | b'.' | b'_' | b'~')).count();
+//|                               ^^^^^^^
+//|
+//= note: for more information, see https://github.com/rust-lang/rust/issues/65721
+//= help: add `#![feature(matches_macro)]` to the crate attributes to enable
+#![feature(matches_macro)]
+
 mod enc;
 pub use enc::encode;
 pub use enc::encode_binary;
