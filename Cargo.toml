@@ -1,14 +1,14 @@
 [package]
-name = "urlencoding"
-version = "2.1.0"
-authors = ["Kornel <kornel@geekhood.net>", "Bertram Truong <b@bertramtruong.com>"]
+name = "rs-urlencoding"
+version = "1.0.0"
+authors = ["Kornel <kornel@geekhood.net>", "Bertram Truong <b@bertramtruong.com>", "smalls <smalls0098@gmail.com>"]
 categories = ["encoding", "web-programming"]
 description = "A Rust library for doing URL percentage encoding."
 homepage = "https://lib.rs/urlencoding"
-keywords = ["url", "percent", "escape", "urlencode", "urldecode"]
+keywords = ["url", "percent", "escape", "urlencode", "urldecode", "rs-urlencoding"]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/kornelski/rust_urlencoding"
+repository = "https://github.com/smalls0098/rust_urlencoding"
 edition = "2018"
 
 [package.metadata.docs.rs]
