@@ -1,6 +1,6 @@
 # urlencoding
 
-[![Latest Version](https://img.shields.io/crates/v/urlencoding.svg)](https://lib.rs/crates/urlencoding)
+[![Latest Version](https://img.shields.io/crates/v/rs-urlencoding.svg)](https://lib.rs/crates/rs-urlencoding)
 
 A tiny Rust library for doing URL percentage encoding and decoding. It percent-encodes everything except alphanumerics and `-`, `_`, `.`, `~`.
 
